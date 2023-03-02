@@ -32,8 +32,8 @@ export enum ArgumentType {
    */
   IMAGE = 'image'
 }
-export interface Argument<T extends ArgumentType = ArgumentType> {
-  type: T
+export interface Argument {
+  type: ArgumentType
   defaultValue?: string | number
   /** the name of the menu to use for this argument, if any. */
   menu?: string

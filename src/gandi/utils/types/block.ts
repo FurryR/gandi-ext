@@ -61,9 +61,9 @@ export interface ExtensionMenuItem {
   text: string
   value: string | number
 }
-export interface BlockInfo<T extends BlockType> {
+export interface BlockInfo {
   /** the type of block (command, reporter, etc.) being described. */
-  blockType: T
+  blockType: BlockType
   /** the text on the block, with [PLACEHOLDERS] for arguments. */
   text: string
   /** a unique alphanumeric identifier for this block. No special characters allowed. */

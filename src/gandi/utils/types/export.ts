@@ -1,4 +1,4 @@
-import { BlockInfo, BlockType, DynamicMenu, ExtensionMenuItem } from './block'
+import { BlockInfo, DynamicMenu, ExtensionMenuItem } from './block'
 import { Runtime, TranslationMap } from './runtime'
 
 /**
@@ -19,7 +19,7 @@ export interface ExtensionInfo {
   menuIconURI?: string
   /** Open Documentation 图标指向的路径(可不填)。 */
   docsURI?: string
-  blocks: (BlockInfo<BlockType> | string)[] /* 语句表 */
+  blocks: (BlockInfo | string)[] /* 语句表 */
   /** map of menu name to metadata for each of this extension's menus. */
   menus?: {
     [key: string]: ExtensionMenuItem[] | DynamicMenu

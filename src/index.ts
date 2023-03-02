@@ -1,7 +1,8 @@
-import { GandiExt } from './utils/ext'
-import { ArgumentType } from './utils/types/argument'
-import { BlockType } from './utils/types/block'
-import type { ExportInfo } from './utils/types/export'
+import { GandiExt, Reporter, StringArg } from './gandi/utils/ext'
+import type { ExportInfo } from './gandi/utils/types/export'
+/*
+Scratch example
+*/
 export default ((): ExportInfo<unknown> => {
   // 描述你的插件
   const ext = new GandiExt()
@@ -11,7 +12,13 @@ export default ((): ExportInfo<unknown> => {
   ext.describe('测试', sec => {
     sec.describe(
       'minifyJSON',
-      (_, args) => {
+      Reporter(
+        ext.translate('Example.minifyJSON', {
+          'zh-cn': '【测试】最小化 [json]',
+          en: '【Test】Minify [json]'
+        }),
+        { json: StringArg('{}') }
+      ).done((_, args) => {
         const v = args['json']
         if (typeof v == 'string') {
           try {
@@ -21,20 +28,7 @@ export default ((): ExportInfo<unknown> => {
           }
         }
         return
-      },
-      {
-        blockType: BlockType.REPORTER,
-        text: ext.translate('Example.minifyJSON', {
-          'zh-cn': '【测试】最小化 [json]',
-          en: '【Test】Minify [json]'
-        }),
-        arguments: {
-          json: {
-            type: ArgumentType.STRING,
-            defaultValue: '{}'
-          }
-        }
-      }
+      })
     )
   })
 
@@ -66,8 +60,9 @@ export default ((): ExportInfo<unknown> => {
         'Example.description': '又一个 Typescript Gandi 插件模板！'
       },
       en: {
-        'notjs.extensionName': 'Gandi-Ext Test',
-        'notjs.description': 'Yet another Typescript extension template for Gandi IDE.'
+        'Example.extensionName': 'Gandi-Ext Test',
+        'Example.description':
+          'Yet another Typescript extension template for Gandi IDE.'
       }
     }
   }
