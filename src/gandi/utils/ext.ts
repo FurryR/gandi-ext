@@ -79,7 +79,7 @@ export class FormatStr {
     this.str = str
   }
 }
-export class GandiExt {
+export class ScratchExt {
   private _l10n: TranslationMap
   private _section: Map<string, Section>
   private _menus: Map<
@@ -95,7 +95,7 @@ export class GandiExt {
    * @param func 段落处理器
    * @returns 自身
    */
-  describe(name: string, func: (section: Section) => void): GandiExt {
+  describe(name: string, func: (section: Section) => void): ScratchExt {
     const sec = new Section()
     func(sec)
     this._section.set(name, sec)

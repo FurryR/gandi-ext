@@ -1,5 +1,5 @@
 import { BlockInfo, DynamicMenu, ExtensionMenuItem } from './block'
-import { TranslationMap } from './runtime'
+import { Runtime } from './runtime'
 
 /**
  * @brief 插件的类型描述。
@@ -24,10 +24,13 @@ export interface ExtensionInfo {
   menus?: {
     [key: string]: ExtensionMenuItem[] | DynamicMenu
   }
-  translation_map: TranslationMap
 }
 export interface Scratch {
+  vm?: {
+    runtime: Runtime
+  }
   extensions: {
+    unsandboxed: boolean
     register<T>(v: T): void
   }
 }

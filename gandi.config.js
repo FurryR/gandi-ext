@@ -3,7 +3,7 @@ module.exports = {
   mode: 'production',
   entry: {
     main: {
-      import: './src/_export.ts',
+      import: './src/_gandi_export.ts',
       library: {
         name: 'ExtensionLib',
         type: 'umd'

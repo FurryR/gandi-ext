@@ -7,14 +7,14 @@ import {
   ReporterScope
 } from './types/block'
 import type { ExtensionInfo } from './types/export'
-import type { Runtime, TranslationMap } from './types/runtime'
+import type { Runtime } from './types/runtime'
 export interface ExtBlockInfo {
   /** The function of the block. */
   func: (runtime: Runtime, args: { [key: string]: unknown }) => unknown
   /** the type of block (command, reporter, etc.) being described. */
   blockType: BlockType
   /** the text on the block, with [PLACEHOLDERS] for arguments. */
-  text: string | FormatStr
+  text: string
   /** true if this block should not appear in the block palette. */
   hideFromPalette?: boolean
   /** true if the block ends a stack - no blocks can be connected after it. */
@@ -40,7 +40,7 @@ export interface Metadata {
   /** 扩展 id。 */
   id: string
   /** 扩展名。 */
-  name: string | FormatStr /* 扩展名 */
+  name: string /* 扩展名 */
   /** 主要颜色。 */
   color1?: string
   /** 次要颜色。 */
@@ -75,21 +75,14 @@ export class Section {
     return this._blocks
   }
 }
-export class FormatStr {
-  str: string
-  constructor(str: string) {
-    this.str = str
-  }
-}
 export class ScratchExt {
-  private _l10n: TranslationMap
   private _section: Map<string, Section>
   private _menus: Map<
     string,
     ExtensionMenuItem[] | ((runtime: Runtime) => unknown[])
   >
   constructor() {
-    void ([this._l10n, this._section, this._menus] = [{}, new Map(), new Map()])
+    void ([this._section, this._menus] = [new Map(), new Map()])
   }
   /**
    * 描述段落。
@@ -108,15 +101,8 @@ export class ScratchExt {
    * @param id 翻译 id
    * @param t 翻译语言
    */
-  translate(id: string, t: { [key: string]: string }): FormatStr {
-    for (const key of Object.keys(t)) {
-      let v = this._l10n[key]
-      if (v === undefined) {
-        v = this._l10n[key] = {}
-      }
-      v[id] = t[key]
-    }
-    return new FormatStr(id)
+  translate(_id: string, t: { [key: string]: string }): string {
+    return t['en']
   }
   /**
    * @brief 新建菜单。
@@ -135,8 +121,7 @@ export class ScratchExt {
    * @param data 插件元数据。
    * @returns 匿名类。
    */
-  export(data: Metadata): unknown {
-    const _l10n = this._l10n
+  export(data: Metadata): { new (runtime: Runtime): unknown } {
     const _sec = this._section
     const _menus = this._menus
     class temp {
@@ -145,19 +130,15 @@ export class ScratchExt {
         [key: string]: ExtensionMenuItem[] | DynamicMenu
       };
       [key: string]: unknown
-      constructor() {
+      constructor(runtime: Runtime) {
         this._blocks = []
         this._menus = {}
-        // data
-        if (data.name instanceof FormatStr) {
-          data.name = data.name.str
-        }
         // menus
         for (const [key, value] of _menus.entries()) {
           if (value instanceof Function) {
             this._menus[key] = { items: key }
             this[key] = (): unknown[] => {
-              return value(undefined)
+              return value(runtime)
             }
           } else {
             this._menus[key] = value
@@ -171,15 +152,12 @@ export class ScratchExt {
               this._blocks.push(
                 Object.assign(value2, {
                   opcode: key,
-                  text:
-                    value2.text instanceof FormatStr
-                      ? value2.text.str
-                      : value2.text,
+                  text: value2.text,
                   func: undefined
                 })
               )
               this[key] = (args: { [key: string]: unknown }): unknown => {
-                return fn(undefined, args)
+                return fn(runtime, args)
               }
             }
           } else {
@@ -189,15 +167,12 @@ export class ScratchExt {
               this._blocks.push(
                 Object.assign(value2, {
                   opcode: key,
-                  text:
-                    value2.text instanceof FormatStr
-                      ? value2.text.str
-                      : value2.text,
+                  text: value2.text,
                   func: undefined
                 })
               )
               this[key] = (args: { [key: string]: unknown }): unknown => {
-                return fn(undefined, args)
+                return fn(runtime, args)
               }
             }
           }
@@ -205,24 +180,14 @@ export class ScratchExt {
       }
       getInfo(): ExtensionInfo {
         const v = data.name
-        if (typeof v == 'string') {
-          return Object.assign(data, {
-            blocks: this._blocks,
-            translation_map: _l10n,
-            menus: this._menus,
-            name: v
-          })
-        } else {
-          return Object.assign(data, {
-            blocks: this._blocks,
-            translation_map: _l10n,
-            menus: this._menus,
-            name: v.str
-          })
-        }
+        return Object.assign(data, {
+          blocks: this._blocks,
+          menus: this._menus,
+          name: v
+        })
       }
     }
-    return new temp()
+    return temp
   }
 }
 export function StringArg(defaultValue?: string, menu?: string): Argument {
@@ -253,7 +218,7 @@ interface _ArgBlockInfo {
   filter?: string[]
 }
 export class BlockFactory {
-  private text: string | FormatStr
+  private text: string
   private args: {
     [key: string]: Argument
   } = {}
@@ -261,7 +226,7 @@ export class BlockFactory {
   private type: BlockType
   constructor(
     type: BlockType,
-    text: string | FormatStr,
+    text: string,
     args: {
       [key: string]: Argument
     },
@@ -289,7 +254,7 @@ export class BlockFactory {
   }
 }
 export function Command(
-  text: string | FormatStr,
+  text: string,
   args: {
     [key: string]: Argument
   } = {},
@@ -298,7 +263,7 @@ export function Command(
   return new BlockFactory(BlockType.COMMAND, text, args, config)
 }
 export function Boolean(
-  text: string | FormatStr,
+  text: string,
   args: {
     [key: string]: Argument
   } = {},
@@ -307,7 +272,7 @@ export function Boolean(
   return new BlockFactory(BlockType.BOOLEAN, text, args, config)
 }
 export function Conditional(
-  text: string | FormatStr,
+  text: string,
   args: {
     [key: string]: Argument
   } = {},
@@ -316,7 +281,7 @@ export function Conditional(
   return new BlockFactory(BlockType.CONDITIONAL, text, args, config)
 }
 export function Event(
-  text: string | FormatStr,
+  text: string,
   args: {
     [key: string]: Argument
   } = {},
@@ -325,7 +290,7 @@ export function Event(
   return new BlockFactory(BlockType.EVENT, text, args, config)
 }
 export function Button(
-  text: string | FormatStr,
+  text: string,
   args: {
     [key: string]: Argument
   } = {},
@@ -334,7 +299,7 @@ export function Button(
   return new BlockFactory(BlockType.BUTTON, text, args, config)
 }
 export function Hat(
-  text: string | FormatStr,
+  text: string,
   args: {
     [key: string]: Argument
   } = {},
@@ -343,7 +308,7 @@ export function Hat(
   return new BlockFactory(BlockType.HAT, text, args, config)
 }
 export function Loop(
-  text: string | FormatStr,
+  text: string,
   args: {
     [key: string]: Argument
   } = {},
@@ -352,7 +317,7 @@ export function Loop(
   return new BlockFactory(BlockType.LOOP, text, args, config)
 }
 export function Reporter(
-  text: string | FormatStr,
+  text: string,
   args: {
     [key: string]: Argument
   } = {},
